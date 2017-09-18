@@ -96,16 +96,7 @@ module.exports = (locals, callback) => {
       },
     })
   )
-
-  apiRunnerAsync(`onRenderBody`, {
-    setHeadComponents,
-    setPreBodyComponents,
-    setPostBodyComponents,
-    setBodyProps,
-    pathname: locals.path,
-  })
-  .then(() =>
-    apiRunnerAsync('replaceRenderer',
+  apiRunnerAsync('replaceRenderer',
       ({
         bodyComponent,
         replaceBodyHTMLString,
@@ -113,9 +104,17 @@ module.exports = (locals, callback) => {
         setPreBodyComponents,
         setPostBodyComponents,
         setBodyProps,
-      }))
-    )
-    .then(() => {
+  }))
+  .then(() =>
+    apiRunnerAsync(`onRenderBody`, {
+      setHeadComponents,
+      setPreBodyComponents,
+      setPostBodyComponents,
+      setBodyProps,
+      pathname: locals.path,
+    })
+  )
+  .then(() => {
       // If no one stepped up, we'll handle it.
       if (!bodyHTML) {
         bodyHTML = renderToString(bodyComponent)
