@@ -3,6 +3,7 @@ import fs from "fs-extra"
 import { store, emitter } from "../../redux/"
 import { joinPath } from "../../utils/path"
 
+
 const writeRedirects = async () => {
   bootstrapFinished = true
 
