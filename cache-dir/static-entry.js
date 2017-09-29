@@ -99,21 +99,22 @@ module.exports = (locals, callback) => {
   )
 
   // Let the site or plugin render the page component.
-  apiRunner(`onRenderBody`, {
+
+  apiRunner(`replaceRenderer`, {
+    bodyComponent,
+    replaceBodyHTMLString,
     setHeadComponents,
     setPreBodyComponents,
     setPostBodyComponents,
     setBodyProps,
-    pathname: locals.path,
   })
-  .then(() => 
-    apiRunner(`replaceRenderer`, {
-      bodyComponent,
-      replaceBodyHTMLString,
+  .then(() =>
+    apiRunner(`onRenderBody`, {
       setHeadComponents,
       setPreBodyComponents,
       setPostBodyComponents,
       setBodyProps,
+      pathname: locals.path,
     })
   )
   .then(() => {
