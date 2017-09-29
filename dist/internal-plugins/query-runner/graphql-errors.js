@@ -24,17 +24,23 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // These handle specific errors throw by RelayParser. If an error matches
 // you get a pointer to the location in the query that is broken, otherwise
 // we show the error and the query.
-const handlers = [[/Unknown field `(.+)` on type `(.+)`/i, ([name], node) => {
+var handlers = [[/Unknown field `(.+)` on type `(.+)`/i, function (_ref, node) {
+  var name = _ref[0];
+
   if (node.kind === `Field` && node.name.value === name) {
     return node.name.loc;
   }
   return null;
-}], [/Unknown argument `(.+)`/i, ([name], node) => {
+}], [/Unknown argument `(.+)`/i, function (_ref2, node) {
+  var name = _ref2[0];
+
   if (node.kind === `Argument` && node.name.value === name) {
     return node.name.loc;
   }
   return null;
-}], [/Unknown directive `@(.+)`/i, ([name], node) => {
+}], [/Unknown directive `@(.+)`/i, function (_ref3, node) {
+  var name = _ref3[0];
+
   if (node.kind === `Directive` && node.name.value === name) {
     return node.name.loc;
   }
@@ -54,24 +60,41 @@ function formatError(message, filePath, codeFrame) {
 }
 
 function extractError(error) {
-  const docRegex = /Invariant Violation: RelayParser: (.*). Source: document `(.*)` file:/g;
-  let matches;
-  let message = ``,
+  var docRegex = /Invariant Violation: RelayParser: (.*). Source: document `(.*)` file:/g;
+  var matches = void 0;
+  var message = ``,
       docName = ``;
   while ((matches = docRegex.exec(error.toString())) !== null) {
     // This is necessary to avoid infinite loops with zero-width matches
-    if (matches.index === docRegex.lastIndex) docRegex.lastIndex++;[, message, docName] = matches;
+    if (matches.index === docRegex.lastIndex) docRegex.lastIndex++;var _matches = matches;
+    message = _matches[1];
+    docName = _matches[2];
   }
   return { message, docName };
 }
 
 function findLocation(extractedMessage, def) {
-  let location = null;
+  var location = null;
   (0, _graphql.visit)(def, {
     enter(node) {
       if (location) return;
-      for (let [regex, handler] of handlers) {
-        let match = extractedMessage.match(regex);
+      for (var _iterator = handlers, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref5;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref5 = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref5 = _i.value;
+        }
+
+        var _ref4 = _ref5;
+        var regex = _ref4[0];
+        var handler = _ref4[1];
+
+        var match = extractedMessage.match(regex);
         if (!match) continue;
         if (location = handler(match.slice(1), node)) break;
       }
@@ -88,19 +111,26 @@ function getCodeFrame(query, lineNumber, column) {
 }
 
 function getCodeFrameFromRelayError(def, extractedMessage, error) {
-  let { start, source } = findLocation(extractedMessage, def) || {};
-  let query = source ? source.body : (0, _graphql.print)(def);
+  var _ref6 = findLocation(extractedMessage, def) || {},
+      start = _ref6.start,
+      source = _ref6.source;
+
+  var query = source ? source.body : (0, _graphql.print)(def);
 
   // we can't reliably get a location without the location source, since
   // the printed query may differ from the original.
-  let { line, column } = source && (0, _graphql.getLocation)(source, start) || {};
+
+  var _ref7 = source && (0, _graphql.getLocation)(source, start) || {},
+      line = _ref7.line,
+      column = _ref7.column;
+
   return getCodeFrame(query, line, column);
 }
 
 function multipleRootQueriesError(filePath, def, otherDef) {
-  let name = def.name.value;
-  let otherName = otherDef.name.value;
-  let unifiedName = `${_lodash2.default.camelCase(name)}And${_lodash2.default.upperFirst(_lodash2.default.camelCase(otherName))}`;
+  var name = def.name.value;
+  var otherName = otherDef.name.value;
+  var unifiedName = `${_lodash2.default.camelCase(name)}And${_lodash2.default.upperFirst(_lodash2.default.camelCase(otherName))}`;
 
   return formatError(`Multiple "root" queries found in file: "${name}" and "${otherName}". ` + `Only the first ("${otherName}") will be registered.`, filePath, `  ${_reporter2.default.format.yellow(`Instead of:`)} \n\n` + (0, _babelCodeFrame2.default)(_reporter2.default.stripIndent`
       query ${otherName} {
@@ -128,16 +158,25 @@ function multipleRootQueriesError(filePath, def, otherDef) {
 
 function graphqlValidationError(errors, filePath, doc) {
   if (!errors || !errors.length) return ``;
-  let error = errors[0];
-  let { source, locations: [{ line, column }] = [{}] } = error;
-  let query = source ? source.body : (0, _graphql.print)(doc);
+  var error = errors[0];
+  var source = error.source,
+      _error$locations = error.locations;
+  _error$locations = _error$locations === undefined ? [{}] : _error$locations;
+  var _error$locations$ = _error$locations[0],
+      line = _error$locations$.line,
+      column = _error$locations$.column;
+
+  var query = source ? source.body : (0, _graphql.print)(doc);
 
   return formatError(error.message, filePath, getCodeFrame(query, line, column));
 }
 
 function graphqlError(namePathMap, nameDefMap, error) {
-  let { message, docName } = extractError(error);
-  let filePath = namePathMap.get(docName);
+  var _extractError = extractError(error),
+      message = _extractError.message,
+      docName = _extractError.docName;
+
+  var filePath = namePathMap.get(docName);
 
   if (filePath && docName) {
     return formatError(message, filePath, getCodeFrameFromRelayError(nameDefMap.get(docName), message, error));

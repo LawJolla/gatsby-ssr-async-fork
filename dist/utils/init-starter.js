@@ -17,14 +17,14 @@ var _path2 = _interopRequireDefault(_path);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*  weak */
-let logger = console;
+var logger = console;
 
 // Checks the existence of yarn package
 // We use yarnpkg instead of yarn to avoid conflict with Hadoop yarn
 // Refer to https://github.com/yarnpkg/yarn/issues/673
 //
 // Returns true if yarn exists, false otherwise
-const shouldUseYarn = () => {
+var shouldUseYarn = function shouldUseYarn() {
   try {
     (0, _child_process.execSync)(`yarnpkg --version`, { stdio: `ignore` });
     return true;
@@ -39,23 +39,25 @@ const shouldUseYarn = () => {
 // callback - Function. Takes stderr and stdout of executed process.
 //
 // Returns nothing.
-const install = (rootPath, callback) => {
-  const prevDir = process.cwd();
+var install = function install(rootPath, callback) {
+  var prevDir = process.cwd();
   logger.log(`Installing packages...`);
   process.chdir(rootPath);
-  const installCmd = shouldUseYarn() ? `yarnpkg` : `npm install`;
-  (0, _child_process.exec)(installCmd, (error, stdout, stderr) => {
+  var installCmd = shouldUseYarn() ? `yarnpkg` : `npm install`;
+  (0, _child_process.exec)(installCmd, function (error, stdout, stderr) {
     process.chdir(prevDir);
     if (stdout) console.log(stdout.toString());
     if (error !== null) {
-      const msg = stderr.toString();
+      var msg = stderr.toString();
       callback(new Error(msg));
     }
     callback(null, stdout);
   });
 };
 
-const ignored = path => !/^\.(git|hg)$/.test(_path2.default.basename(path));
+var ignored = function ignored(path) {
+  return !/^\.(git|hg)$/.test(_path2.default.basename(path));
+};
 
 // Copy starter from file system.
 //
@@ -64,9 +66,9 @@ const ignored = path => !/^\.(git|hg)$/.test(_path2.default.basename(path));
 // callback     - Function.
 //
 // Returns nothing.
-const copy = (starterPath, rootPath, callback) => {
-  const copyDirectory = () => {
-    _fsExtra2.default.copy(starterPath, rootPath, { filter: ignored }, error => {
+var copy = function copy(starterPath, rootPath, callback) {
+  var copyDirectory = function copyDirectory() {
+    _fsExtra2.default.copy(starterPath, rootPath, { filter: ignored }, function (error) {
       if (error !== null) return callback(new Error(error));
       logger.log(`Created starter directory layout`);
       install(rootPath, callback);
@@ -76,11 +78,11 @@ const copy = (starterPath, rootPath, callback) => {
 
   // Chmod with 755.
   // 493 = parseInt('755', 8)
-  _fsExtra2.default.mkdirp(rootPath, { mode: 493 }, error => {
+  _fsExtra2.default.mkdirp(rootPath, { mode: 493 }, function (error) {
     if (error !== null) callback(new Error(error));
-    return _fsExtra2.default.exists(starterPath, exists => {
+    return _fsExtra2.default.exists(starterPath, function (exists) {
       if (!exists) {
-        const chmodError = `starter ${starterPath} doesn't exist`;
+        var chmodError = `starter ${starterPath} doesn't exist`;
         return callback(new Error(chmodError));
       }
       logger.log(`Copying local starter to ${rootPath} ...`);
@@ -98,19 +100,19 @@ const copy = (starterPath, rootPath, callback) => {
 // callback    - Function.
 //
 // Returns nothing.
-const clone = (hostInfo, rootPath, callback) => {
-  const url = hostInfo.git({ noCommittish: true });
-  const branch = hostInfo.committish ? `-b ${hostInfo.committish}` : ``;
+var clone = function clone(hostInfo, rootPath, callback) {
+  var url = hostInfo.git({ noCommittish: true });
+  var branch = hostInfo.committish ? `-b ${hostInfo.committish}` : ``;
 
   logger.log(`Cloning git repo ${url} to ${rootPath}...`);
-  const cmd = `git clone ${branch} ${url} ${rootPath} --single-branch`;
+  var cmd = `git clone ${branch} ${url} ${rootPath} --single-branch`;
 
-  (0, _child_process.exec)(cmd, (error, stdout, stderr) => {
+  (0, _child_process.exec)(cmd, function (error, stdout, stderr) {
     if (error !== null) {
       return callback(new Error(`Git clone error: ${stderr.toString()}`));
     }
     logger.log(`Created starter directory layout`);
-    return _fsExtra2.default.remove(_path2.default.join(rootPath, `.git`), removeError => {
+    return _fsExtra2.default.remove(_path2.default.join(rootPath, `.git`), function (removeError) {
       if (error !== null) return callback(new Error(removeError));
       install(rootPath, callback);
       return true;
@@ -125,19 +127,24 @@ const clone = (hostInfo, rootPath, callback) => {
 // callback    - Function.
 //
 // Returns nothing.
-const initStarter = (starter, options = {}) => new Promise((resolve, reject) => {
-  const callback = (err, value) => err ? reject(err) : resolve(value);
+var initStarter = function initStarter(starter) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  return new Promise(function (resolve, reject) {
+    var callback = function callback(err, value) {
+      return err ? reject(err) : resolve(value);
+    };
 
-  const cwd = process.cwd();
-  const rootPath = options.rootPath || cwd;
-  if (options.logger) logger = options.logger;
+    var cwd = process.cwd();
+    var rootPath = options.rootPath || cwd;
+    if (options.logger) logger = options.logger;
 
-  if (_fsExtra2.default.existsSync(_path2.default.join(rootPath, `package.json`))) throw new Error(`Directory ${rootPath} is already an npm project`);
+    if (_fsExtra2.default.existsSync(_path2.default.join(rootPath, `package.json`))) throw new Error(`Directory ${rootPath} is already an npm project`);
 
-  const hostedInfo = _hostedGitInfo2.default.fromUrl(starter);
+    var hostedInfo = _hostedGitInfo2.default.fromUrl(starter);
 
-  if (hostedInfo) clone(hostedInfo, rootPath, callback);else copy(starter, rootPath, callback);
-});
+    if (hostedInfo) clone(hostedInfo, rootPath, callback);else copy(starter, rootPath, callback);
+  });
+};
 
 module.exports = initStarter;
 //# sourceMappingURL=init-starter.js.map

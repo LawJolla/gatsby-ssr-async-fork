@@ -3,11 +3,11 @@
 exports.__esModule = true;
 exports.joinPath = joinPath;
 exports.withBasePath = withBasePath;
-const path = require(`path`);
-const os = require(`os`);
+var path = require(`path`);
+var os = require(`os`);
 
-function joinPath(...paths) {
-  const joinedPath = path.join(...paths);
+function joinPath() {
+  var joinedPath = path.join.apply(path, arguments);
   if (os.platform() === `win32`) {
     return joinedPath.replace(/\\/g, `\\\\`);
   } else {
@@ -16,6 +16,12 @@ function joinPath(...paths) {
 }
 
 function withBasePath(basePath) {
-  return (...paths) => joinPath(basePath, ...paths);
+  return function () {
+    for (var _len = arguments.length, paths = Array(_len), _key = 0; _key < _len; _key++) {
+      paths[_key] = arguments[_key];
+    }
+
+    return joinPath.apply(undefined, [basePath].concat(paths));
+  };
 }
 //# sourceMappingURL=path.js.map

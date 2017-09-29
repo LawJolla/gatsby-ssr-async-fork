@@ -5,10 +5,10 @@ exports.nodeInterface = undefined;
 
 var _graphql = require("graphql");
 
-const nodeInterface = exports.nodeInterface = new _graphql.GraphQLInterfaceType({
+var nodeInterface = exports.nodeInterface = new _graphql.GraphQLInterfaceType({
   name: `Node`,
   description: `An object with an id, parent, and children`,
-  fields: () => {
+  fields: function fields() {
     return {
       id: {
         type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),

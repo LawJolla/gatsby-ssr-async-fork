@@ -19,19 +19,19 @@ var _readline2 = _interopRequireDefault(_readline);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*  weak */
-const rlInterface = _readline2.default.createInterface({
+var rlInterface = _readline2.default.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-const debug = require(`debug`)(`gatsby:application`);
+var debug = require(`debug`)(`gatsby:application`);
 
 function startServer(program, launchPort) {
-  const directory = program.directory;
-  const serverPort = launchPort || program.port;
+  var directory = program.directory;
+  var serverPort = launchPort || program.port;
 
   debug(`Serving /public`);
-  const server = new _hapi2.default.Server();
+  var server = new _hapi2.default.Server();
 
   server.connection({
     host: program.host,
@@ -50,7 +50,7 @@ function startServer(program, launchPort) {
     }
   });
 
-  server.start(e => {
+  server.start(function (e) {
     if (e) {
       if (e.code === `EADDRINUSE`) {
         // eslint-disable-next-line max-len
@@ -69,10 +69,10 @@ function startServer(program, launchPort) {
   });
 }
 
-module.exports = program => {
-  const port = typeof program.port === `string` ? parseInt(program.port, 10) : program.port;
+module.exports = function (program) {
+  var port = typeof program.port === `string` ? parseInt(program.port, 10) : program.port;
 
-  (0, _detectPort2.default)(port, (err, _port) => {
+  (0, _detectPort2.default)(port, function (err, _port) {
     if (err) {
       console.error(err);
       process.exit();
@@ -80,9 +80,9 @@ module.exports = program => {
 
     if (port !== _port) {
       // eslint-disable-next-line max-len
-      const question = `Something is already running at port ${port} \nWould you like to run the app at another port instead? [Y/n] `;
+      var question = `Something is already running at port ${port} \nWould you like to run the app at another port instead? [Y/n] `;
 
-      return rlInterface.question(question, answer => {
+      return rlInterface.question(question, function (answer) {
         if (answer.length === 0 || answer.match(/^yes|y$/i)) {
           program.port = _port;
         }

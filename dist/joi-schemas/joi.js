@@ -1,9 +1,9 @@
 "use strict";
 
 exports.__esModule = true;
-const Joi = require(`joi`);
+var Joi = require(`joi`);
 
-const gatsbyConfigSchema = exports.gatsbyConfigSchema = Joi.object().keys({
+var gatsbyConfigSchema = exports.gatsbyConfigSchema = Joi.object().keys({
   polyfill: Joi.boolean(),
   siteMetadata: Joi.object(),
   pathPrefix: Joi.string(),
@@ -15,7 +15,7 @@ const gatsbyConfigSchema = exports.gatsbyConfigSchema = Joi.object().keys({
   })
 });
 
-const layoutSchema = exports.layoutSchema = Joi.object().keys({
+var layoutSchema = exports.layoutSchema = Joi.object().keys({
   id: Joi.string().required(),
   component: Joi.string().required(),
   componentWrapperPath: Joi.string().required(),
@@ -24,7 +24,7 @@ const layoutSchema = exports.layoutSchema = Joi.object().keys({
   context: Joi.object()
 }).unknown();
 
-const pageSchema = exports.pageSchema = Joi.object().keys({
+var pageSchema = exports.pageSchema = Joi.object().keys({
   path: Joi.string().required(),
   matchPath: Joi.string(),
   component: Joi.string().required(),
@@ -34,7 +34,7 @@ const pageSchema = exports.pageSchema = Joi.object().keys({
   pluginCreatorName: Joi.string()
 }).unknown();
 
-const nodeSchema = exports.nodeSchema = Joi.object().keys({
+var nodeSchema = exports.nodeSchema = Joi.object().keys({
   id: Joi.string().required(),
   children: Joi.array().items(Joi.string(), Joi.object().forbidden()).required(),
   parent: Joi.string().allow(null).required(),

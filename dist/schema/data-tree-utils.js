@@ -1,21 +1,27 @@
 "use strict";
 
-const _ = require(`lodash`);
-const flatten = require(`flat`);
-const typeOf = require(`type-of`);
+var _ = require(`lodash`);
+var flatten = require(`flat`);
+var typeOf = require(`type-of`);
 
-const createKey = require(`./create-key`);
+var createKey = require(`./create-key`);
 
-const INVALID_VALUE = Symbol(`INVALID_VALUE`);
-const isDefined = v => v != null;
+var INVALID_VALUE = Symbol(`INVALID_VALUE`);
+var isDefined = function isDefined(v) {
+  return v != null;
+};
 
-const isSameType = (a, b) => a == null || b == null || typeOf(a) === typeOf(b);
-const areAllSameType = list => list.every((current, i) => {
-  let prev = i ? list[i - 1] : undefined;
-  return isSameType(prev, current);
-});
+var isSameType = function isSameType(a, b) {
+  return a == null || b == null || typeOf(a) === typeOf(b);
+};
+var areAllSameType = function areAllSameType(list) {
+  return list.every(function (current, i) {
+    var prev = i ? list[i - 1] : undefined;
+    return isSameType(prev, current);
+  });
+};
 
-const isEmptyObjectOrArray = obj => {
+var isEmptyObjectOrArray = function isEmptyObjectOrArray(obj) {
   if (obj === INVALID_VALUE) {
     return true;
   } else if (_.isDate(obj)) {
@@ -24,7 +30,7 @@ const isEmptyObjectOrArray = obj => {
   } else if (_.isObject(obj) && _.isEmpty(obj)) {
     return true;
   } else if (_.isObject(obj)) {
-    return _.every(obj, (value, key) => {
+    return _.every(obj, function (value, key) {
       if (!isDefined(value)) {
         return true;
       } else if (_.isObject(value)) {
@@ -49,51 +55,53 @@ const isEmptyObjectOrArray = obj => {
  *
  * @param {*Nodes} args
  */
-const extractFieldExamples = (nodes
+var extractFieldExamples = function extractFieldExamples(nodes
 // $FlowFixMe
-) => _.mergeWith(_.isArray(nodes[0]) ? [] : {}, ..._.cloneDeep(nodes), (obj, next, key, po, pn, stack) => {
-  if (obj === INVALID_VALUE) return obj;
+) {
+  return _.mergeWith.apply(_, [_.isArray(nodes[0]) ? [] : {}].concat(_.cloneDeep(nodes), [function (obj, next, key, po, pn, stack) {
+    if (obj === INVALID_VALUE) return obj;
 
-  // TODO: if you want to support infering Union types this should be handled
-  // differently. Maybe merge all like types into examples for each type?
-  // e.g. union: [1, { foo: true }, ['brown']] -> Union Int|Object|List
-  if (!isSameType(obj, next)) {
-    return INVALID_VALUE;
-  }
+    // TODO: if you want to support infering Union types this should be handled
+    // differently. Maybe merge all like types into examples for each type?
+    // e.g. union: [1, { foo: true }, ['brown']] -> Union Int|Object|List
+    if (!isSameType(obj, next)) {
+      return INVALID_VALUE;
+    }
 
-  if (!_.isArray(obj || next)) {
-    // Prefer floats over ints as they're more specific.
-    if (obj && _.isNumber(obj) && !_.isInteger(obj)) return obj;
-    if (obj === null) return next;
-    if (next === null) return obj;
-    return undefined;
-  }
+    if (!_.isArray(obj || next)) {
+      // Prefer floats over ints as they're more specific.
+      if (obj && _.isNumber(obj) && !_.isInteger(obj)) return obj;
+      if (obj === null) return next;
+      if (next === null) return obj;
+      return undefined;
+    }
 
-  let array = [].concat(obj, next).filter(isDefined);
+    var array = [].concat(obj, next).filter(isDefined);
 
-  if (!array.length) return null;
-  if (!areAllSameType(array)) return INVALID_VALUE;
+    if (!array.length) return null;
+    if (!areAllSameType(array)) return INVALID_VALUE;
 
-  // Linked node arrays don't get reduced further as we
-  // want to preserve all the linked node types.
-  if (_.includes(key, `___NODE`)) {
-    return array;
-  }
+    // Linked node arrays don't get reduced further as we
+    // want to preserve all the linked node types.
+    if (_.includes(key, `___NODE`)) {
+      return array;
+    }
 
-  // primitive values don't get merged further, just take the first item
-  if (!_.isObject(array[0])) return array.slice(0, 1);
-  let merged = extractFieldExamples(array);
-  return isDefined(merged) ? [merged] : null;
-});
+    // primitive values don't get merged further, just take the first item
+    if (!_.isObject(array[0])) return array.slice(0, 1);
+    var merged = extractFieldExamples(array);
+    return isDefined(merged) ? [merged] : null;
+  }]));
+};
 
-const buildFieldEnumValues = nodes => {
-  const enumValues = {};
-  const values = flatten(extractFieldExamples(nodes), {
+var buildFieldEnumValues = function buildFieldEnumValues(nodes) {
+  var enumValues = {};
+  var values = flatten(extractFieldExamples(nodes), {
     maxDepth: 3,
     safe: true, // don't flatten arrays.
     delimiter: `___`
   });
-  Object.keys(values).forEach(field => {
+  Object.keys(values).forEach(function (field) {
     if (values[field] == null) return;
     enumValues[createKey(field)] = { field };
   });
@@ -104,8 +112,8 @@ const buildFieldEnumValues = nodes => {
 // extract a list of field names
 // nested objects get flattened to "outer___inner" which will be converted back to
 // "outer.inner" by run-sift
-const extractFieldNames = nodes => {
-  const values = flatten(extractFieldExamples(nodes), {
+var extractFieldNames = function extractFieldNames(nodes) {
+  var values = flatten(extractFieldExamples(nodes), {
     maxDepth: 3,
     safe: true, // don't flatten arrays.
     delimiter: `___`

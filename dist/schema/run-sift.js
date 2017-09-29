@@ -6,16 +6,23 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const sift = require(`sift`);
-const _ = require(`lodash`);
-const { connectionFromArray } = require(`graphql-skip-limit`);
-const { store } = require(`../redux/`);
-const { createPageDependency } = require(`../redux/actions/add-page-dependency`);
-const prepareRegex = require(`./prepare-regex`);
-const Promise = require(`bluebird`);
+var sift = require(`sift`);
+var _ = require(`lodash`);
+
+var _require = require(`graphql-skip-limit`),
+    connectionFromArray = _require.connectionFromArray;
+
+var _require2 = require(`../redux/`),
+    store = _require2.store;
+
+var _require3 = require(`../redux/actions/add-page-dependency`),
+    createPageDependency = _require3.createPageDependency;
+
+var prepareRegex = require(`./prepare-regex`);
+var Promise = require(`bluebird`);
 
 function awaitSiftField(fields, node, k) {
-  const field = fields[k];
+  var field = fields[k];
   if (field.resolve) {
     return field.resolve(node);
   } else if (node[k]) {
@@ -30,20 +37,22 @@ function awaitSiftField(fields, node, k) {
 * Returns a single unwrapped element if connection = false.
 *
 */
-module.exports = ({
-  args,
-  nodes,
-  type,
-  connection = false,
-  path = ``
-}) => {
+module.exports = function (_ref) {
+  var args = _ref.args,
+      nodes = _ref.nodes,
+      type = _ref.type,
+      _ref$connection = _ref.connection,
+      connection = _ref$connection === undefined ? false : _ref$connection,
+      _ref$path = _ref.path,
+      path = _ref$path === undefined ? `` : _ref$path;
+
   // Clone args as for some reason graphql-js removes the constructor
   // from nested objects which breaks a check in sift.js.
-  const clonedArgs = JSON.parse(JSON.stringify(args));
+  var clonedArgs = JSON.parse(JSON.stringify(args));
 
-  const siftifyArgs = object => {
-    const newObject = {};
-    _.each(object, (v, k) => {
+  var siftifyArgs = function siftifyArgs(object) {
+    var newObject = {};
+    _.each(object, function (v, k) {
       if (_.isObject(v) && !_.isArray(v)) {
         newObject[k] = siftifyArgs(v);
       } else {
@@ -51,8 +60,8 @@ module.exports = ({
         if (k === `regex`) {
           newObject[`$regex`] = prepareRegex(v);
         } else if (k === `glob`) {
-          const Minimatch = require(`minimatch`).Minimatch;
-          const mm = new Minimatch(v);
+          var Minimatch = require(`minimatch`).Minimatch;
+          var mm = new Minimatch(v);
           newObject[`$regex`] = mm.makeRe();
         } else {
           newObject[`$${k}`] = v;
@@ -66,7 +75,7 @@ module.exports = ({
   // this avoids including { eq: x } when resolving fields.
   function extractFieldsToSift(prekey, key, preobj, obj, val) {
     if (_.isObject(val) && !_.isArray(val)) {
-      _.forEach(val, (v, k) => {
+      _.forEach(val, function (v, k) {
         preobj[prekey] = obj;
         extractFieldsToSift(key, k, obj, {}, v);
       });
@@ -75,10 +84,10 @@ module.exports = ({
     }
   }
 
-  const siftArgs = [];
-  const fieldsToSift = {};
+  var siftArgs = [];
+  var fieldsToSift = {};
   if (clonedArgs.filter) {
-    _.each(clonedArgs.filter, (v, k) => {
+    _.each(clonedArgs.filter, function (v, k) {
       // Ignore connection and sorting args.
       if (_.includes([`skip`, `limit`, `sort`], k)) return;
 
@@ -89,24 +98,34 @@ module.exports = ({
 
   // Resolves every field used in the sift.
   function resolveRecursive(node, siftFieldsObj, gqFields) {
-    return Promise.all(_.keys(siftFieldsObj).map(k => Promise.resolve(awaitSiftField(gqFields, node, k)).then(v => {
-      const innerSift = siftFieldsObj[k];
-      const innerGqConfig = gqFields[k];
-      if (_.isObject(innerSift) && v != null) {
-        return resolveRecursive(v, innerSift, innerGqConfig.type.getFields());
-      } else {
-        return v;
-      }
-    }).then(v => [k, v]))).then(resolvedFields => {
-      const myNode = (0, _extends3.default)({}, node);
-      resolvedFields.forEach(([k, v]) => myNode[k] = v);
+    return Promise.all(_.keys(siftFieldsObj).map(function (k) {
+      return Promise.resolve(awaitSiftField(gqFields, node, k)).then(function (v) {
+        var innerSift = siftFieldsObj[k];
+        var innerGqConfig = gqFields[k];
+        if (_.isObject(innerSift) && v != null) {
+          return resolveRecursive(v, innerSift, innerGqConfig.type.getFields());
+        } else {
+          return v;
+        }
+      }).then(function (v) {
+        return [k, v];
+      });
+    })).then(function (resolvedFields) {
+      var myNode = (0, _extends3.default)({}, node);
+      resolvedFields.forEach(function (_ref2) {
+        var k = _ref2[0],
+            v = _ref2[1];
+        return myNode[k] = v;
+      });
       return myNode;
     });
   }
 
-  return Promise.all(nodes.map(node => resolveRecursive(node, fieldsToSift, type.getFields()))).then(myNodes => {
+  return Promise.all(nodes.map(function (node) {
+    return resolveRecursive(node, fieldsToSift, type.getFields());
+  })).then(function (myNodes) {
     if (!connection) {
-      const index = _.isEmpty(siftArgs) ? 0 : sift.indexOf({ $and: siftArgs }, myNodes);
+      var index = _.isEmpty(siftArgs) ? 0 : sift.indexOf({ $and: siftArgs }, myNodes);
 
       // Create dependency between resulting node and the path.
       createPageDependency({
@@ -117,7 +136,7 @@ module.exports = ({
       return myNodes[index];
     }
 
-    let result = _.isEmpty(siftArgs) ? myNodes : sift({ $and: siftArgs }, myNodes);
+    var result = _.isEmpty(siftArgs) ? myNodes : sift({ $and: siftArgs }, myNodes);
 
     if (!result || !result.length) return;
 
@@ -125,12 +144,18 @@ module.exports = ({
     if (clonedArgs.sort) {
       // create functions that return the item to compare on
       // uses _.get so nested fields can be retrieved
-      const convertedFields = clonedArgs.sort.fields.map(field => field.replace(/___/g, `.`)).map(field => v => _.get(v, field));
+      var convertedFields = clonedArgs.sort.fields.map(function (field) {
+        return field.replace(/___/g, `.`);
+      }).map(function (field) {
+        return function (v) {
+          return _.get(v, field);
+        };
+      });
 
       result = _.orderBy(result, convertedFields, clonedArgs.sort.order);
     }
 
-    const connectionArray = connectionFromArray(result, args);
+    var connectionArray = connectionFromArray(result, args);
     connectionArray.totalCount = result.length;
     if (result.length > 0 && result[0].internal) {
       createPageDependency({

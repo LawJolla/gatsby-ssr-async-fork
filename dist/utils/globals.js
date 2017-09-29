@@ -1,8 +1,8 @@
 "use strict";
 
-const s = require(`observable`).signal;
+var s = require(`observable`).signal;
 
-const pages = s();
+var pages = s();
 pages(new Map());
 exports.rootDataTree = s();
 //# sourceMappingURL=globals.js.map

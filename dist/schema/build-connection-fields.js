@@ -6,34 +6,37 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _ = require(`lodash`);
-const {
-  GraphQLInt,
-  GraphQLList,
-  GraphQLString,
-  GraphQLEnumType
-} = require(`graphql`);
-const {
-  connectionArgs,
-  connectionDefinitions,
-  connectionFromArray
-} = require(`graphql-skip-limit`);
+var _ = require(`lodash`);
 
-const { buildFieldEnumValues } = require(`./data-tree-utils`);
+var _require = require(`graphql`),
+    GraphQLInt = _require.GraphQLInt,
+    GraphQLList = _require.GraphQLList,
+    GraphQLString = _require.GraphQLString,
+    GraphQLEnumType = _require.GraphQLEnumType;
 
-module.exports = type => {
-  const enumValues = buildFieldEnumValues(type.nodes);
-  const { connectionType: groupConnection } = connectionDefinitions({
+var _require2 = require(`graphql-skip-limit`),
+    connectionArgs = _require2.connectionArgs,
+    connectionDefinitions = _require2.connectionDefinitions,
+    connectionFromArray = _require2.connectionFromArray;
+
+var _require3 = require(`./data-tree-utils`),
+    buildFieldEnumValues = _require3.buildFieldEnumValues;
+
+module.exports = function (type) {
+  var enumValues = buildFieldEnumValues(type.nodes);
+
+  var _connectionDefinition = connectionDefinitions({
     name: _.camelCase(`${type.name} groupConnection`),
     nodeType: type.nodeObjectType,
-    connectionFields: () => {
+    connectionFields: function connectionFields() {
       return {
         field: { type: GraphQLString },
         fieldValue: { type: GraphQLString },
         totalCount: { type: GraphQLInt }
       };
     }
-  });
+  }),
+      groupConnection = _connectionDefinition.connectionType;
 
   return {
     totalCount: {
@@ -50,11 +53,13 @@ module.exports = type => {
         }
       },
       resolve(connection, args) {
-        let fieldName = args.field;
+        var fieldName = args.field;
         if (_.includes(args.field, `___`)) {
           fieldName = args.field.replace(`___`, `.`);
         }
-        const fields = connection.edges.map(edge => _.get(edge.node, fieldName));
+        var fields = connection.edges.map(function (edge) {
+          return _.get(edge.node, fieldName);
+        });
         return _.sortBy(_.filter(_.uniq(_.flatten(fields)), _.identity));
       }
     },
@@ -69,33 +74,37 @@ module.exports = type => {
         }
       }),
       resolve(connection, args) {
-        const fieldName = args.field.replace(`___`, `.`);
-        const connectionNodes = connection.edges.map(edge => edge.node);
+        var fieldName = args.field.replace(`___`, `.`);
+        var connectionNodes = connection.edges.map(function (edge) {
+          return edge.node;
+        });
 
-        let groups = {};
+        var groups = {};
         // Do a custom grouping for arrays (w/ a group per array value)
         // Find the first node with this field and check if it's an array.
         if (_.isArray(_.get(_.find(connectionNodes, fieldName), fieldName))) {
-          const values = _.uniq(_.reduce(connectionNodes, (vals, n) => {
+          var values = _.uniq(_.reduce(connectionNodes, function (vals, n) {
             if (_.has(n, fieldName)) {
               return vals.concat(_.get(n, fieldName));
             } else {
               return vals;
             }
           }, []));
-          values.forEach(val => {
-            groups[val] = _.filter(connectionNodes, n => _.includes(_.get(n, fieldName), val));
+          values.forEach(function (val) {
+            groups[val] = _.filter(connectionNodes, function (n) {
+              return _.includes(_.get(n, fieldName), val);
+            });
           });
         } else {
           groups = _.groupBy(connectionNodes, fieldName);
         }
-        const groupConnections = [];
+        var groupConnections = [];
 
         // Do default sort by fieldValue
-        const sortedFieldValues = _.sortBy(_.keys(groups));
-        _.each(sortedFieldValues, fieldValue => {
-          const groupNodes = groups[fieldValue];
-          const groupConn = connectionFromArray(groupNodes, args);
+        var sortedFieldValues = _.sortBy(_.keys(groups));
+        _.each(sortedFieldValues, function (fieldValue) {
+          var groupNodes = groups[fieldValue];
+          var groupConn = connectionFromArray(groupNodes, args);
           groupConn.totalCount = groupNodes.length;
           groupConn.field = fieldName;
           groupConn.fieldValue = fieldValue;

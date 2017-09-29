@@ -4,53 +4,71 @@
  * https://github.com/evanw/node-source-map-support/blob/master/source-map-support.js
  */
 
-const { readFileSync } = require(`fs`);
-const babelCodeFrame = require(`babel-code-frame`);
-const stackTrace = require(`stack-trace`);
-const { SourceMapConsumer } = require(`source-map`);
+var _require = require(`fs`),
+    readFileSync = _require.readFileSync;
+
+var babelCodeFrame = require(`babel-code-frame`);
+var stackTrace = require(`stack-trace`);
+
+var _require2 = require(`source-map`),
+    SourceMapConsumer = _require2.SourceMapConsumer;
 
 module.exports = function prepareStackTrace(error, source) {
-  const map = new SourceMapConsumer(readFileSync(source, `utf8`));
-  const stack = stackTrace.parse(error).map(frame => wrapCallSite(map, frame)).filter(frame => !frame.getFileName() || !frame.getFileName().match(/^webpack:\/+webpack\//));
+  var map = new SourceMapConsumer(readFileSync(source, `utf8`));
+  var stack = stackTrace.parse(error).map(function (frame) {
+    return wrapCallSite(map, frame);
+  }).filter(function (frame) {
+    return !frame.getFileName() || !frame.getFileName().match(/^webpack:\/+webpack\//);
+  });
 
   error.codeFrame = getErrorSource(map, stack[0]);
-  error.stack = `${error.name}: ${error.message}\n` + stack.map(frame => `    at ${frame}`).join(`\n`);
+  error.stack = `${error.name}: ${error.message}\n` + stack.map(function (frame) {
+    return `    at ${frame}`;
+  }).join(`\n`);
 };
 
 function getErrorSource(map, topFrame) {
-  let source = map.sourceContentFor(topFrame.getFileName(), true);
+  var source = map.sourceContentFor(topFrame.getFileName(), true);
   return source && babelCodeFrame(source, topFrame.getLineNumber(), topFrame.getColumnNumber(), {
     highlightCode: true
   });
 }
 
 function wrapCallSite(map, frame) {
-  let source = frame.getFileName();
+  var source = frame.getFileName();
   if (!source) return frame;
 
-  let position = getPosition(map, frame);
+  var position = getPosition(map, frame);
   if (!position.source) return frame;
 
-  frame.getFileName = () => position.source;
-  frame.getLineNumber = () => position.line;
-  frame.getColumnNumber = () => position.column + 1;
-  frame.getScriptNameOrSourceURL = () => position.source;
+  frame.getFileName = function () {
+    return position.source;
+  };
+  frame.getLineNumber = function () {
+    return position.line;
+  };
+  frame.getColumnNumber = function () {
+    return position.column + 1;
+  };
+  frame.getScriptNameOrSourceURL = function () {
+    return position.source;
+  };
   frame.toString = CallSiteToString;
   return frame;
 }
 
 function getPosition(map, frame) {
-  let source = frame.getFileName();
-  let line = frame.getLineNumber();
-  let column = frame.getColumnNumber();
+  var source = frame.getFileName();
+  var line = frame.getLineNumber();
+  var column = frame.getColumnNumber();
   return map.originalPositionFor({ source, line, column });
 }
 
 // This is copied almost verbatim from the V8 source code at
 // https://code.google.com/p/v8/source/browse/trunk/src/messages.js.
 function CallSiteToString() {
-  let fileName;
-  let fileLocation = ``;
+  var fileName = void 0;
+  var fileLocation = ``;
   if (this.isNative()) {
     fileLocation = `native`;
   } else {
@@ -68,23 +86,23 @@ function CallSiteToString() {
       // an eval string.
       fileLocation += `<anonymous>`;
     }
-    let lineNumber = this.getLineNumber();
+    var lineNumber = this.getLineNumber();
     if (lineNumber != null) {
       fileLocation += `:${lineNumber}`;
-      let columnNumber = this.getColumnNumber();
+      var columnNumber = this.getColumnNumber();
       if (columnNumber) {
         fileLocation += `:${columnNumber}`;
       }
     }
   }
 
-  let line = ``;
-  let functionName = this.getFunctionName();
-  let addSuffix = true;
-  let isConstructor = this.isConstructor && this.isConstructor();
-  let methodName = this.getMethodName();
-  let typeName = this.getTypeName();
-  let isMethodCall = methodName && !(this.isToplevel && this.isToplevel() || isConstructor);
+  var line = ``;
+  var functionName = this.getFunctionName();
+  var addSuffix = true;
+  var isConstructor = this.isConstructor && this.isConstructor();
+  var methodName = this.getMethodName();
+  var typeName = this.getTypeName();
+  var isMethodCall = methodName && !(this.isToplevel && this.isToplevel() || isConstructor);
   if (isMethodCall && functionName) {
     if (functionName) {
       if (typeName && functionName.indexOf(typeName) != 0) {

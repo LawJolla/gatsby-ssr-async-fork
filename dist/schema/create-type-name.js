@@ -1,11 +1,11 @@
 "use strict";
 
-const _ = require(`lodash`);
+var _ = require(`lodash`);
 
-const seenNames = {};
+var seenNames = {};
 
 module.exports = function createTypeName(name) {
-  const cameledName = _.camelCase(name);
+  var cameledName = _.camelCase(name);
   if (seenNames[cameledName]) {
     seenNames[cameledName] += 1;
     return `${cameledName}_${seenNames[cameledName]}`;

@@ -1,13 +1,19 @@
 "use strict";
 
-const { createReporter } = require(`yurnalist`);
-const { stripIndent } = require(`common-tags`);
-const convertHrtime = require(`convert-hrtime`);
-const { getErrorFormatter } = require(`./errors`);
+var _require = require(`yurnalist`),
+    createReporter = _require.createReporter;
 
-const errorFormatter = getErrorFormatter();
-const reporter = createReporter({ emoji: true });
-const base = Object.getPrototypeOf(reporter);
+var _require2 = require(`common-tags`),
+    stripIndent = _require2.stripIndent;
+
+var convertHrtime = require(`convert-hrtime`);
+
+var _require3 = require(`./errors`),
+    getErrorFormatter = _require3.getErrorFormatter;
+
+var errorFormatter = getErrorFormatter();
+var reporter = createReporter({ emoji: true });
+var base = Object.getPrototypeOf(reporter);
 
 module.exports = Object.assign(reporter, {
   stripIndent,
@@ -16,8 +22,8 @@ module.exports = Object.assign(reporter, {
     this.isVerbose = true;
   },
 
-  panic(...args) {
-    this.error(...args);
+  panic() {
+    this.error.apply(this, arguments);
     process.exit(1);
   },
 
@@ -35,19 +41,19 @@ module.exports = Object.assign(reporter, {
   },
 
   activityTimer(name) {
-    const spinner = reporter.activity();
-    const start = process.hrtime();
+    var spinner = reporter.activity();
+    var start = process.hrtime();
 
-    const elapsedTime = () => {
+    var elapsedTime = function elapsedTime() {
       var elapsed = process.hrtime(start);
       return `${convertHrtime(elapsed)[`seconds`].toFixed(3)} s`;
     };
 
     return {
-      start: () => {
+      start: function start() {
         spinner.tick(name);
       },
-      end: () => {
+      end: function end() {
         reporter.success(`${name} — ${elapsedTime()}`);
         spinner.end();
       }

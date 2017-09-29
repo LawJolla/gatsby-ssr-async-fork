@@ -11,32 +11,33 @@ exports.createSortField = createSortField;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const {
-  GraphQLInputObjectType,
-  GraphQLBoolean,
-  GraphQLString,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLEnumType,
-  GraphQLNonNull,
-  GraphQLScalarType,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType
-} = require(`graphql`);
+var _require = require(`graphql`),
+    GraphQLInputObjectType = _require.GraphQLInputObjectType,
+    GraphQLBoolean = _require.GraphQLBoolean,
+    GraphQLString = _require.GraphQLString,
+    GraphQLFloat = _require.GraphQLFloat,
+    GraphQLInt = _require.GraphQLInt,
+    GraphQLList = _require.GraphQLList,
+    GraphQLEnumType = _require.GraphQLEnumType,
+    GraphQLNonNull = _require.GraphQLNonNull,
+    GraphQLScalarType = _require.GraphQLScalarType,
+    GraphQLObjectType = _require.GraphQLObjectType,
+    GraphQLInterfaceType = _require.GraphQLInterfaceType,
+    GraphQLUnionType = _require.GraphQLUnionType;
 
-const { oneLine } = require(`common-tags`);
-const _ = require(`lodash`);
-const invariant = require(`invariant`);
-const typeOf = require(`type-of`);
-const createTypeName = require(`./create-type-name`);
-const createKey = require(`./create-key`);
-const {
-  extractFieldExamples,
-  buildFieldEnumValues,
-  isEmptyObjectOrArray
-} = require(`./data-tree-utils`);
+var _require2 = require(`common-tags`),
+    oneLine = _require2.oneLine;
+
+var _ = require(`lodash`);
+var invariant = require(`invariant`);
+var typeOf = require(`type-of`);
+var createTypeName = require(`./create-type-name`);
+var createKey = require(`./create-key`);
+
+var _require3 = require(`./data-tree-utils`),
+    extractFieldExamples = _require3.extractFieldExamples,
+    buildFieldEnumValues = _require3.buildFieldEnumValues,
+    isEmptyObjectOrArray = _require3.isEmptyObjectOrArray;
 
 function makeNullable(type) {
   if (type instanceof GraphQLNonNull) {
@@ -51,10 +52,10 @@ function convertToInputType(type) {
   } else if (type instanceof GraphQLObjectType) {
     return new GraphQLInputObjectType({
       name: createTypeName(`${type.name}InputObject`),
-      fields: _.transform(type.getFields(), (out, fieldConfig, key) => {
+      fields: _.transform(type.getFields(), function (out, fieldConfig, key) {
         try {
-          const type = convertToInputType(fieldConfig.type);
-          out[key] = { type };
+          var _type = convertToInputType(fieldConfig.type);
+          out[key] = { type: _type };
         } catch (e) {
           console.log(e);
         }
@@ -73,7 +74,7 @@ function convertToInputType(type) {
   }
 }
 
-const scalarFilterMap = {
+var scalarFilterMap = {
   Int: {
     eq: { type: GraphQLInt },
     ne: { type: GraphQLInt }
@@ -96,8 +97,8 @@ const scalarFilterMap = {
 
 function convertToInputFilter(prefix, type) {
   if (type instanceof GraphQLScalarType) {
-    const name = type.name;
-    const fields = scalarFilterMap[name];
+    var name = type.name;
+    var fields = scalarFilterMap[name];
 
     if (fields == null) {
       throw new Error(`Unknown scalar type for input filter`);
@@ -110,18 +111,18 @@ function convertToInputFilter(prefix, type) {
   } else if (type instanceof GraphQLInputObjectType) {
     return new GraphQLInputObjectType({
       name: createTypeName(`${prefix}{type.name}`),
-      fields: _.transform(type.getFields(), (out, fieldConfig, key) => {
+      fields: _.transform(type.getFields(), function (out, fieldConfig, key) {
         try {
-          const type = convertToInputFilter(`${prefix}${_.upperFirst(key)}`, fieldConfig.type);
-          out[key] = { type };
+          var _type2 = convertToInputFilter(`${prefix}${_.upperFirst(key)}`, fieldConfig.type);
+          out[key] = { type: _type2 };
         } catch (e) {
           console.log(e);
         }
       })
     });
   } else if (type instanceof GraphQLList) {
-    const innerType = type.ofType;
-    let innerFields = {};
+    var innerType = type.ofType;
+    var innerFields = {};
     try {
       innerFields = convertToInputFilter(`${prefix}ListElem`, innerType).getFields();
     } catch (e) {
@@ -145,7 +146,7 @@ function extractFieldNamesFromInputField(prefix, type, accu) {
   if (type instanceof GraphQLScalarType || type instanceof GraphQLList) {
     accu.push(prefix);
   } else if (type instanceof GraphQLInputObjectType) {
-    _.each(type.getFields(), (fieldConfig, key) => {
+    _.each(type.getFields(), function (fieldConfig, key) {
       extractFieldNamesFromInputField(`${prefix}___${key}`, fieldConfig.type, accu);
     });
   } else if (type instanceof GraphQLNonNull) {
@@ -156,17 +157,18 @@ function extractFieldNamesFromInputField(prefix, type, accu) {
 }
 
 // convert output fields to output fields and a list of fields to sort on
-function inferInputObjectStructureFromFields({
-  fields,
-  typeName = ``
-}) {
-  const inferredFields = {};
-  const sort = [];
+function inferInputObjectStructureFromFields(_ref) {
+  var fields = _ref.fields,
+      _ref$typeName = _ref.typeName,
+      typeName = _ref$typeName === undefined ? `` : _ref$typeName;
 
-  _.each(fields, (fieldConfig, key) => {
+  var inferredFields = {};
+  var sort = [];
+
+  _.each(fields, function (fieldConfig, key) {
     try {
-      const inputType = convertToInputType(fieldConfig.type);
-      const filterType = convertToInputFilter(_.upperFirst(key), inputType);
+      var inputType = convertToInputType(fieldConfig.type);
+      var filterType = convertToInputFilter(_.upperFirst(key), inputType);
 
       inferredFields[createKey(key)] = {
         type: filterType
@@ -185,12 +187,12 @@ function inferInputObjectStructureFromFields({
 
 // builds an input field for sorting, given an array of names to sort on
 function createSortField(typeName, fieldNames) {
-  const enumValues = {};
-  fieldNames.forEach(field => {
+  var enumValues = {};
+  fieldNames.forEach(function (field) {
     enumValues[createKey(field)] = { value: field };
   });
 
-  const SortByType = new GraphQLEnumType({
+  var SortByType = new GraphQLEnumType({
     name: `${typeName}SortByFieldsEnum`,
     values: enumValues
   });

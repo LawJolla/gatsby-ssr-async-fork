@@ -18,18 +18,28 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _ = require(`lodash`);
-const { bindActionCreators } = require(`redux`);
-const { stripIndent } = require(`common-tags`);
-const glob = require(`glob`);
-const path = require(`path`);
+var _ = require(`lodash`);
 
-const { joinPath } = require(`../utils/path`);
-const { getNode, hasNodeChanged } = require(`./index`);
-const { store } = require(`./index`);
+var _require = require(`redux`),
+    bindActionCreators = _require.bindActionCreators;
 
+var _require2 = require(`common-tags`),
+    stripIndent = _require2.stripIndent;
 
-const actions = {};
+var glob = require(`glob`);
+var path = require(`path`);
+
+var _require3 = require(`../utils/path`),
+    joinPath = _require3.joinPath;
+
+var _require4 = require(`./index`),
+    getNode = _require4.getNode,
+    hasNodeChanged = _require4.hasNodeChanged;
+
+var _require5 = require(`./index`),
+    store = _require5.store;
+
+var actions = {};
 
 /**
  * Delete a page
@@ -37,14 +47,16 @@ const actions = {};
  * @example
  * deletePage(page)
  */
-actions.deletePage = (page, plugin = ``) => {
+actions.deletePage = function (page) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+
   return {
     type: `DELETE_PAGE`,
     payload: page
   };
 };
 
-const pascalCase = _.flow(_.camelCase, _.upperFirst);
+var pascalCase = _.flow(_.camelCase, _.upperFirst);
 /**
  * Create a page. See [the guide on creating and modifying pages](/docs/creating-and-modifying-pages/)
  * for detailed documenation about creating pages.
@@ -65,11 +77,14 @@ const pascalCase = _.flow(_.camelCase, _.upperFirst);
  *   },
  * })
  */
-actions.createPage = (page, plugin = ``, traceId) => {
+actions.createPage = function (page) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+  var traceId = arguments[2];
+
   page.componentChunkName = (0, _jsChunkNames.generateComponentChunkName)(page.component);
 
-  let jsonName = `${_.kebabCase(page.path)}.json`;
-  let internalComponentName = `Component${pascalCase(page.path)}`;
+  var jsonName = `${_.kebabCase(page.path)}.json`;
+  var internalComponentName = `Component${pascalCase(page.path)}`;
   if (jsonName === `.json`) {
     jsonName = `index.json`;
     internalComponentName = `ComponentIndex`;
@@ -89,7 +104,7 @@ actions.createPage = (page, plugin = ``, traceId) => {
     page.context = {};
   }
 
-  const result = _joi2.default.validate(page, joiSchemas.pageSchema);
+  var result = _joi2.default.validate(page, joiSchemas.pageSchema);
   if (result.error) {
     console.log(_chalk2.default.blue.bgYellow(`The upserted page didn't pass validation`));
     console.log(_chalk2.default.bold.red(result.error));
@@ -116,7 +131,9 @@ actions.createPage = (page, plugin = ``, traceId) => {
  * @example
  * deleteLayout(layout)
  */
-actions.deleteLayout = (layout, plugin = ``) => {
+actions.deleteLayout = function (layout) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+
   return {
     type: `DELETE_LAYOUT`,
     payload: layout
@@ -138,7 +155,10 @@ actions.deleteLayout = (layout, plugin = ``) => {
  *   }
  * })
  */
-actions.createLayout = (layout, plugin = ``, traceId) => {
+actions.createLayout = function (layout) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+  var traceId = arguments[2];
+
   layout.id = layout.id || path.parse(layout.component).name;
   layout.componentWrapperPath = joinPath(store.getState().program.directory, `.cache`, `layouts`, layout.id + `.js`);
   layout.componentChunkName = (0, _jsChunkNames.generateComponentChunkName)(layout.component);
@@ -151,7 +171,7 @@ actions.createLayout = (layout, plugin = ``, traceId) => {
     layout.context = {};
   }
 
-  const result = _joi2.default.validate(layout, joiSchemas.layoutSchema);
+  var result = _joi2.default.validate(layout, joiSchemas.layoutSchema);
 
   if (result.error) {
     console.log(_chalk2.default.blue.bgYellow(`The upserted layout didn't pass validation`));
@@ -175,7 +195,9 @@ actions.createLayout = (layout, plugin = ``, traceId) => {
  * @example
  * deleteNode(node.id, node)
  */
-actions.deleteNode = (nodeId, node, plugin = ``) => {
+actions.deleteNode = function (nodeId, node) {
+  var plugin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : ``;
+
   return {
     type: `DELETE_NODE`,
     plugin,
@@ -190,7 +212,9 @@ actions.deleteNode = (nodeId, node, plugin = ``) => {
  * @example
  * deleteNodes([`node1`, `node2`])
  */
-actions.deleteNodes = (nodes, plugin = ``) => {
+actions.deleteNodes = function (nodes) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+
   return {
     type: `DELETE_NODES`,
     plugin,
@@ -198,7 +222,7 @@ actions.deleteNodes = (nodes, plugin = ``) => {
   };
 };
 
-const typeOwners = {};
+var typeOwners = {};
 /**
  * Create a new node.
  * @param {Object} node a node object
@@ -256,7 +280,7 @@ const typeOwners = {};
  *   }
  * })
  */
-actions.createNode = (node, plugin, traceId) => {
+actions.createNode = function (node, plugin, traceId) {
   if (!_.isObject(node)) {
     return console.log(_chalk2.default.bold.red(`The node passed to the "createNode" action creator must be an object`));
   }
@@ -278,7 +302,7 @@ actions.createNode = (node, plugin, traceId) => {
     node.internal.owner = plugin.name;
   }
 
-  const result = _joi2.default.validate(node, joiSchemas.nodeSchema);
+  var result = _joi2.default.validate(node, joiSchemas.nodeSchema);
   if (result.error) {
     console.log(_chalk2.default.bold.red(`The new node didn't pass validation`));
     console.log(_chalk2.default.bold.red(result.error));
@@ -330,7 +354,7 @@ actions.createNode = (node, plugin, traceId) => {
     }
   }
 
-  const oldNode = getNode(node.id);
+  var oldNode = getNode(node.id);
 
   // If the node has been created in the past, check that
   // the current plugin is the same as the previous.
@@ -371,7 +395,9 @@ actions.createNode = (node, plugin, traceId) => {
  * @example
  * touchNode(`a-node-id`)
  */
-actions.touchNode = (nodeId, plugin = ``) => {
+actions.touchNode = function (nodeId) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+
   return {
     type: `TOUCH_NODE`,
     plugin,
@@ -401,7 +427,13 @@ actions.touchNode = (nodeId, plugin = ``) => {
  *
  * // The field value is now accessible at node.fields.happiness
  */
-actions.createNodeField = ({ node, name, value, fieldName, fieldValue }, plugin, traceId) => {
+actions.createNodeField = function (_ref, plugin, traceId) {
+  var node = _ref.node,
+      name = _ref.name,
+      value = _ref.value,
+      fieldName = _ref.fieldName,
+      fieldValue = _ref.fieldValue;
+
   if (fieldName) {
     console.warn(`Calling "createNodeField" with "fieldName" is deprecated. Use "name" instead`);
     if (!name) {
@@ -423,7 +455,7 @@ actions.createNodeField = ({ node, name, value, fieldName, fieldValue }, plugin,
   }
 
   // Check that this field isn't owned by another plugin.
-  const fieldOwner = node.internal.fieldOwners[name];
+  var fieldOwner = node.internal.fieldOwners[name];
   if (fieldOwner && fieldOwner !== plugin.name) {
     throw new Error(stripIndent`
       A plugin tried to update a node field that it doesn't own:
@@ -455,7 +487,10 @@ actions.createNodeField = ({ node, name, value, fieldName, fieldValue }, plugin,
  * @example
  * createParentChildLink({ parent: parentNode, child: childNode })
  */
-actions.createParentChildLink = ({ parent, child }, plugin) => {
+actions.createParentChildLink = function (_ref2, plugin) {
+  var parent = _ref2.parent,
+      child = _ref2.child;
+
   // Update parent
   parent.children.push(child.id);
   parent.children = _.uniq(parent.children);
@@ -476,7 +511,12 @@ actions.createParentChildLink = ({ parent, child }, plugin) => {
  * @param {string} $0.connection A connection type
  * @private
  */
-actions.createPageDependency = ({ path, nodeId, connection }, plugin = ``) => {
+actions.createPageDependency = function (_ref3) {
+  var path = _ref3.path,
+      nodeId = _ref3.nodeId,
+      connection = _ref3.connection;
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ``;
+
   return {
     type: `CREATE_COMPONENT_DEPENDENCY`,
     plugin,
@@ -494,7 +534,7 @@ actions.createPageDependency = ({ path, nodeId, connection }, plugin = ``) => {
  * @param {Array} paths the paths to delete.
  * @private
  */
-actions.deleteComponentsDependencies = paths => {
+actions.deleteComponentsDependencies = function (paths) {
   return {
     type: `DELETE_COMPONENTS_DEPENDENCIES`,
     payload: {
@@ -508,7 +548,10 @@ actions.deleteComponentsDependencies = paths => {
  * this to store the query with its component.
  * @private
  */
-actions.replaceComponentQuery = ({ query, componentPath }) => {
+actions.replaceComponentQuery = function (_ref4) {
+  var query = _ref4.query,
+      componentPath = _ref4.componentPath;
+
   return {
     type: `REPLACE_COMPONENT_QUERY`,
     payload: {
@@ -530,7 +573,9 @@ actions.replaceComponentQuery = ({ query, componentPath }) => {
  * @example
  * createJob({ id: `write file id: 123`, fileName: `something.jpeg` })
  */
-actions.createJob = (job, plugin = {}) => {
+actions.createJob = function (job) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
   return {
     type: `CREATE_JOB`,
     plugin,
@@ -547,7 +592,9 @@ actions.createJob = (job, plugin = {}) => {
  * @example
  * setJob({ id: `write file id: 123`, progress: 50 })
  */
-actions.setJob = (job, plugin = {}) => {
+actions.setJob = function (job) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
   return {
     type: `SET_JOB`,
     plugin,
@@ -564,7 +611,9 @@ actions.setJob = (job, plugin = {}) => {
  * @example
  * endJob({ id: `write file id: 123` })
  */
-actions.endJob = (job, plugin = {}) => {
+actions.endJob = function (job) {
+  var plugin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
   return {
     type: `END_JOB`,
     plugin,
@@ -580,7 +629,7 @@ actions.endJob = (job, plugin = {}) => {
  * @example
  * setPluginStatus({ lastFetched: Date.now() })
  */
-actions.setPluginStatus = (status, plugin) => {
+actions.setPluginStatus = function (status, plugin) {
   return {
     type: `SET_PLUGIN_STATUS`,
     plugin,
@@ -600,12 +649,14 @@ actions.setPluginStatus = (status, plugin) => {
  * @example
  * createRedirect({ fromPath: '/old-url', toPath: '/new-url', isPermanent: true })
  */
-actions.createRedirect = ({
-  fromPath,
-  isPermanent = false,
-  toPath,
-  redirectInBrowser = false
-}) => {
+actions.createRedirect = function (_ref5) {
+  var fromPath = _ref5.fromPath,
+      _ref5$isPermanent = _ref5.isPermanent,
+      isPermanent = _ref5$isPermanent === undefined ? false : _ref5$isPermanent,
+      toPath = _ref5.toPath,
+      _ref5$redirectInBrows = _ref5.redirectInBrowser,
+      redirectInBrowser = _ref5$redirectInBrows === undefined ? false : _ref5$redirectInBrows;
+
   return {
     type: `CREATE_REDIRECT`,
     payload: {

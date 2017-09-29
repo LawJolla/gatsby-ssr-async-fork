@@ -106,7 +106,7 @@ module.exports = (locals, callback) => {
     setBodyProps,
     pathname: locals.path,
   })
-  .then(() =>
+  .then(() => 
     apiRunner(`replaceRenderer`, {
       bodyComponent,
       replaceBodyHTMLString,
@@ -115,7 +115,8 @@ module.exports = (locals, callback) => {
       setPostBodyComponents,
       setBodyProps,
     })
-  ).then(() => {
+  )
+  .then(() => {
 
   // If no one stepped up, we'll handle it.
   if (!bodyHTML) {
@@ -214,5 +215,5 @@ module.exports = (locals, callback) => {
   )}`
 
   callback(null, html)
-  })
+})
 }

@@ -1,17 +1,24 @@
 "use strict";
 
-const _ = require(`lodash`);
+var _ = require(`lodash`);
 
-const { store } = require(`../`);
-const { actions } = require(`../actions.js`);
+var _require = require(`../`),
+    store = _require.store;
 
-exports.createPageDependency = ({ path, nodeId, connection }) => {
-  const state = store.getState();
+var _require2 = require(`../actions.js`),
+    actions = _require2.actions;
+
+exports.createPageDependency = function (_ref) {
+  var path = _ref.path,
+      nodeId = _ref.nodeId,
+      connection = _ref.connection;
+
+  var state = store.getState();
 
   // Check that the dependencies aren't already recorded so we
   // can avoid creating lots of very noisy actions.
-  let nodeDependencyExists = false;
-  let connectionDependencyExists = false;
+  var nodeDependencyExists = false;
+  var connectionDependencyExists = false;
   if (!nodeId) {
     nodeDependencyExists = true;
   }
@@ -29,7 +36,7 @@ exports.createPageDependency = ({ path, nodeId, connection }) => {
   }
 
   // It's new, let's dispatch it
-  const action = actions.createPageDependency({ path, nodeId, connection });
+  var action = actions.createPageDependency({ path, nodeId, connection });
   store.dispatch(action);
 };
 //# sourceMappingURL=add-page-dependency.js.map

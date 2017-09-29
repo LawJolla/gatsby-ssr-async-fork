@@ -10,18 +10,18 @@
  *
  * 
  */
-const forEachObject = require(`lodash`).forEach;
-const invariant = require(`invariant`);
+var forEachObject = require(`lodash`).forEach;
+var invariant = require(`invariant`);
 
-const DEFAULT_HANDLE_KEY = ``;
-const {
-  GraphQLEnumType,
-  GraphQLInputObjectType,
-  GraphQLList,
-  GraphQLNonNull
-} = require(`graphql`);
+var DEFAULT_HANDLE_KEY = ``;
 
-const INDENT = `  `;
+var _require = require(`graphql`),
+    GraphQLEnumType = _require.GraphQLEnumType,
+    GraphQLInputObjectType = _require.GraphQLInputObjectType,
+    GraphQLList = _require.GraphQLList,
+    GraphQLNonNull = _require.GraphQLNonNull;
+
+var INDENT = `  `;
 
 /**
  * Converts a Relay IR node into a GraphQL string. Custom Relay
@@ -40,18 +40,20 @@ function print(node) {
 }
 
 function printSelections(node, indent, parentCondition) {
-  const selections = node.selections;
+  var selections = node.selections;
   if (selections == null) {
     return ``;
   }
-  const printed = selections.map(selection => printSelection(selection, indent, parentCondition));
-  let selection = printed.join(`\n` + indent + INDENT);
+  var printed = selections.map(function (selection) {
+    return printSelection(selection, indent, parentCondition);
+  });
+  var selection = printed.join(`\n` + indent + INDENT);
   return printed.length ? ` {\n${indent + INDENT}${selection}\n${indent}}` : ``;
 }
 
 function printSelection(selection, indent, parentCondition) {
   parentCondition = parentCondition || ``;
-  let str = ``;
+  var str = ``;
   if (selection.kind === `LinkedField`) {
     if (selection.alias != null) {
       str += selection.alias + `: `;
@@ -82,14 +84,16 @@ function printSelection(selection, indent, parentCondition) {
     str += printFragmentArguments(selection.args);
     str += printDirectives(selection.directives);
   } else if (selection.kind === `Condition`) {
-    const value = printValue(selection.condition);
+    var value = printValue(selection.condition);
     // For Flow
     invariant(value != null, `RelayPrinter: Expected a variable for condition, got a literal \`null\`.`);
-    let condStr = selection.passingValue ? ` @include` : ` @skip`;
+    var condStr = selection.passingValue ? ` @include` : ` @skip`;
     condStr += `(if: ` + value + `)`;
     condStr += parentCondition;
     // For multi-selection conditions, pushes the condition down to each
-    const subSelections = selection.selections.map(sel => printSelection(sel, indent, condStr));
+    var subSelections = selection.selections.map(function (sel) {
+      return printSelection(sel, indent, condStr);
+    });
     str += subSelections.join(`\n` + INDENT);
   } else {
     invariant(false, `RelayPrinter: Unknown selection kind \`%s\`.`, selection.kind);
@@ -98,8 +102,8 @@ function printSelection(selection, indent, parentCondition) {
 }
 
 function printArgumentDefinitions(argumentDefinitions) {
-  const printed = argumentDefinitions.map(def => {
-    let str = `$${def.name}: ${def.type.toString()}`;
+  var printed = argumentDefinitions.map(function (def) {
+    var str = `$${def.name}: ${def.type.toString()}`;
     if (def.defaultValue != null) {
       str += ` = ` + printLiteral(def.defaultValue, def.type);
     }
@@ -109,13 +113,13 @@ function printArgumentDefinitions(argumentDefinitions) {
 }
 
 function printFragmentArgumentDefinitions(argumentDefinitions) {
-  let printed;
-  argumentDefinitions.forEach(def => {
+  var printed = void 0;
+  argumentDefinitions.forEach(function (def) {
     if (def.kind !== `LocalArgumentDefinition`) {
       return;
     }
     printed = printed || [];
-    let str = `${def.name}: {type: "${def.type.toString()}"`;
+    var str = `${def.name}: {type: "${def.type.toString()}"`;
     if (def.defaultValue != null) {
       str += `, defaultValue: ${printLiteral(def.defaultValue, def.type)}`;
     }
@@ -129,23 +133,25 @@ function printHandles(field) {
   if (!field.handles) {
     return ``;
   }
-  const printed = field.handles.map(handle => {
+  var printed = field.handles.map(function (handle) {
     // For backward compatibility and also because this module is
     // shared by ComponentScript.
-    const key = handle.key === DEFAULT_HANDLE_KEY ? `` : `, key: "${handle.key}"`;
-    const filters = handle.filters == null ? `` : `, filters: ${JSON.stringify(handle.filters.sort())}`;
+    var key = handle.key === DEFAULT_HANDLE_KEY ? `` : `, key: "${handle.key}"`;
+    var filters = handle.filters == null ? `` : `, filters: ${JSON.stringify(handle.filters.sort())}`;
     return `@__clientField(handle: "${handle.name}"${key}${filters})`;
   });
   return printed.length ? ` ` + printed.join(` `) : ``;
 }
 
 function printDirectives(directives) {
-  const printed = directives.map(directive => `@` + directive.name + printArguments(directive.args));
+  var printed = directives.map(function (directive) {
+    return `@` + directive.name + printArguments(directive.args);
+  });
   return printed.length ? ` ` + printed.join(` `) : ``;
 }
 
 function printFragmentArguments(args) {
-  const printedArgs = printArguments(args);
+  var printedArgs = printArguments(args);
   if (!printedArgs.length) {
     return ``;
   }
@@ -153,9 +159,9 @@ function printFragmentArguments(args) {
 }
 
 function printArguments(args) {
-  const printed = [];
-  args.forEach(arg => {
-    const printedValue = printValue(arg.value, arg.type);
+  var printed = [];
+  args.forEach(function (arg) {
+    var printedValue = printValue(arg.value, arg.type);
     if (printedValue != null) {
       printed.push(arg.name + `: ` + printedValue);
     }
@@ -168,17 +174,19 @@ function printValue(value, type) {
     return `$${value.variableName}`;
   } else if (value.kind === `ObjectValue`) {
     invariant(type instanceof GraphQLInputObjectType, `RelayPrinter: Need an InputObject type to print objects.`);
-    const pairs = value.fields.map(field => {
-      const typeFields = type.getFields();
-      const innerValue = printValue(field.value, typeFields[field.name].type);
+    var pairs = value.fields.map(function (field) {
+      var typeFields = type.getFields();
+      var innerValue = printValue(field.value, typeFields[field.name].type);
       return innerValue == null ? null : field.name + `: ` + innerValue;
     }).filter(Boolean);
 
     return `{${pairs.join(`, `)}}`;
   } else if (value.kind === `ListValue`) {
     invariant(type instanceof GraphQLList, `RelayPrinter: Need a type in order to print arrays.`);
-    const innerType = type.ofType;
-    return `[${value.items.map(i => printValue(i, innerType)).join(`, `)}]`;
+    var innerType = type.ofType;
+    return `[${value.items.map(function (i) {
+      return printValue(i, innerType);
+    }).join(`, `)}]`;
   } else if (value.value != null) {
     return printLiteral(value.value, type);
   } else {
@@ -196,13 +204,15 @@ function printLiteral(value, type) {
   }
   if (Array.isArray(value)) {
     invariant(type instanceof GraphQLList, `RelayPrinter: Need a type in order to print arrays.`);
-    const itemType = type.ofType;
-    return `[` + value.map(item => printLiteral(item, itemType)).join(`, `) + `]`;
+    var itemType = type.ofType;
+    return `[` + value.map(function (item) {
+      return printLiteral(item, itemType);
+    }).join(`, `) + `]`;
   } else if (typeof value === `object` && value) {
-    const fields = [];
+    var fields = [];
     invariant(type instanceof GraphQLInputObjectType, `RelayPrinter: Need an InputObject type to print objects.`);
-    const typeFields = type.getFields();
-    forEachObject(value, (val, key) => {
+    var typeFields = type.getFields();
+    forEachObject(value, function (val, key) {
       fields.push(key + `: ` + printLiteral(val, typeFields[key].type));
     });
     return `{` + fields.join(`, `) + `}`;

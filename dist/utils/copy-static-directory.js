@@ -1,15 +1,15 @@
 "use strict";
 
-const fs = require(`fs-extra`);
-const chokidar = require(`chokidar`);
-const nodePath = require(`path`);
+var fs = require(`fs-extra`);
+var chokidar = require(`chokidar`);
+var nodePath = require(`path`);
 
-module.exports = () => {
-  chokidar.watch(`${process.cwd()}/static`).on(`add`, path => {
-    const relativePath = nodePath.relative(`${process.cwd()}/static`, path);
+module.exports = function () {
+  chokidar.watch(`${process.cwd()}/static`).on(`add`, function (path) {
+    var relativePath = nodePath.relative(`${process.cwd()}/static`, path);
     fs.copy(path, `${process.cwd()}/public/${relativePath}`);
-  }).on(`change`, path => {
-    const relativePath = nodePath.relative(`${process.cwd()}/static`, path);
+  }).on(`change`, function (path) {
+    var relativePath = nodePath.relative(`${process.cwd()}/static`, path);
     fs.copy(path, `${process.cwd()}/public/${relativePath}`);
   });
 };

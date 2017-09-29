@@ -6,33 +6,36 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const Redux = require(`redux`);
-const Promise = require(`bluebird`);
-const _ = require(`lodash`);
-const { composeWithDevTools } = require(`remote-redux-devtools`);
-const fs = require(`fs`);
-const EventEmitter = require(`eventemitter2`);
-const stringify = require(`json-stringify-safe`);
+var Redux = require(`redux`);
+var Promise = require(`bluebird`);
+var _ = require(`lodash`);
+
+var _require = require(`remote-redux-devtools`),
+    composeWithDevTools = _require.composeWithDevTools;
+
+var fs = require(`fs`);
+var EventEmitter = require(`eventemitter2`);
+var stringify = require(`json-stringify-safe`);
 
 // Create event emitter for actions
-const emitter = new EventEmitter();
+var emitter = new EventEmitter();
 
 // Reducers
-const reducers = require(`./reducers`);
+var reducers = require(`./reducers`);
 
 // Read from cache the old node data.
-let initialState = {};
+var initialState = {};
 try {
   initialState = JSON.parse(fs.readFileSync(`${process.cwd()}/.cache/redux-state.json`));
 } catch (e) {
   // ignore errors.
 }
 
-let store;
+var store = void 0;
 // Only setup the Redux devtools if explicitly enabled.
 if (process.env.REDUX_DEVTOOLS === `true`) {
-  const sitePackageJSON = require(`${process.cwd()}/package.json`);
-  const composeEnhancers = composeWithDevTools({
+  var sitePackageJSON = require(`${process.cwd()}/package.json`);
+  var composeEnhancers = composeWithDevTools({
     realtime: true,
     port: 19999,
     name: sitePackageJSON.name
@@ -43,30 +46,32 @@ if (process.env.REDUX_DEVTOOLS === `true`) {
 }
 
 // Persist state.
-const saveState = _.debounce(state => {
-  const pickedState = _.pick(state, [`nodes`, `status`, `componentDataDependencies`]);
-  fs.writeFile(`${process.cwd()}/.cache/redux-state.json`, stringify(pickedState, null, 2), () => {});
+var saveState = _.debounce(function (state) {
+  var pickedState = _.pick(state, [`nodes`, `status`, `componentDataDependencies`]);
+  fs.writeFile(`${process.cwd()}/.cache/redux-state.json`, stringify(pickedState, null, 2), function () {});
 }, 1000);
 
-store.subscribe(() => {
-  const lastAction = store.getState().lastAction;
+store.subscribe(function () {
+  var lastAction = store.getState().lastAction;
   emitter.emit(lastAction.type, lastAction);
 });
 
-emitter.onAny(() => {
+emitter.onAny(function () {
   saveState(store.getState());
 });
 
 exports.emitter = emitter;
 exports.store = store;
-exports.getNodes = () => {
-  let nodes = _.values(store.getState().nodes);
+exports.getNodes = function () {
+  var nodes = _.values(store.getState().nodes);
   return nodes ? nodes : [];
 };
-const getNode = id => store.getState().nodes[id];
+var getNode = function getNode(id) {
+  return store.getState().nodes[id];
+};
 exports.getNode = getNode;
-exports.hasNodeChanged = (id, digest) => {
-  const node = store.getState().nodes[id];
+exports.hasNodeChanged = function (id, digest) {
+  var node = store.getState().nodes[id];
   if (!node) {
     return true;
   } else {
@@ -74,19 +79,24 @@ exports.hasNodeChanged = (id, digest) => {
   }
 };
 
-exports.loadNodeContent = node => {
+exports.loadNodeContent = function (node) {
   if (node.internal.content) {
     return Promise.resolve(node.internal.content);
   } else {
-    return new Promise(resolve => {
+    return new Promise(function (resolve) {
       // Load plugin's loader function
-      const plugin = store.getState().flattenedPlugins.find(plug => plug.name === node.internal.owner);
-      const { loadNodeContent } = require(plugin.resolve);
+      var plugin = store.getState().flattenedPlugins.find(function (plug) {
+        return plug.name === node.internal.owner;
+      });
+
+      var _require2 = require(plugin.resolve),
+          loadNodeContent = _require2.loadNodeContent;
+
       if (!loadNodeContent) {
         throw new Error(`Could not find function loadNodeContent for plugin ${plugin.name}`);
       }
 
-      return loadNodeContent(node).then(content => {
+      return loadNodeContent(node).then(function (content) {
         // TODO update node's content field here.
         resolve(content);
       });
@@ -94,9 +104,11 @@ exports.loadNodeContent = node => {
   }
 };
 
-exports.getNodeAndSavePathDependency = (id, path) => {
-  const { createPageDependency } = require(`./actions/add-page-dependency`);
-  const node = getNode(id);
+exports.getNodeAndSavePathDependency = function (id, path) {
+  var _require3 = require(`./actions/add-page-dependency`),
+      createPageDependency = _require3.createPageDependency;
+
+  var node = getNode(id);
   createPageDependency({ path, nodeId: id });
   return node;
 };

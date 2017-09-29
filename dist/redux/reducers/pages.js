@@ -1,9 +1,12 @@
 "use strict";
 
-const _ = require(`lodash`);
-const normalize = require(`normalize-path`);
+var _ = require(`lodash`);
+var normalize = require(`normalize-path`);
 
-module.exports = (state = [], action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var action = arguments[1];
+
   switch (action.type) {
     case `DELETE_CACHE`:
       return [];
@@ -19,16 +22,20 @@ module.exports = (state = [], action) => {
       // Link page to its plugin.
       action.payload.pluginCreator___NODE = action.plugin.id;
       action.payload.pluginCreatorId = action.plugin.id;
-      const index = _.findIndex(state, p => p.path === action.payload.path);
+      var index = _.findIndex(state, function (p) {
+        return p.path === action.payload.path;
+      });
       // If the path already exists, overwrite it.
       // Otherwise, add it to the end.
       if (index !== -1) {
-        return [...state.slice(0, index).concat(action.payload).concat(state.slice(index + 1))];
+        return [].concat(state.slice(0, index).concat(action.payload).concat(state.slice(index + 1)));
       } else {
-        return [...state.concat(action.payload)];
+        return [].concat(state.concat(action.payload));
       }
     case `DELETE_PAGE`:
-      return state.filter(p => p.path !== action.payload.path);
+      return state.filter(function (p) {
+        return p.path !== action.payload.path;
+      });
     default:
       return state;
   }

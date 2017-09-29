@@ -1,11 +1,11 @@
 "use strict";
 
-const PrettyError = require(`pretty-error`);
-const prepareStackTrace = require(`./prepare-stack-trace`);
+var PrettyError = require(`pretty-error`);
+var prepareStackTrace = require(`./prepare-stack-trace`);
 
 function getErrorFormatter() {
-  const prettyError = new PrettyError();
-  const baseRender = prettyError.render;
+  var prettyError = new PrettyError();
+  var baseRender = prettyError.render;
 
   prettyError.skipNodeFiles();
   prettyError.skipPackage(`regenerator-runtime`, `graphql`, `core-js`
@@ -13,7 +13,7 @@ function getErrorFormatter() {
   // `tapable`, // webpack
   );
 
-  prettyError.skip((traceLine, ln) => {
+  prettyError.skip(function (traceLine, ln) {
     if (traceLine && traceLine.file === `asyncToGenerator.js`) return true;
     return false;
   });
@@ -24,8 +24,8 @@ function getErrorFormatter() {
     }
   });
 
-  prettyError.render = err => {
-    let rendered = baseRender.call(prettyError, err);
+  prettyError.render = function (err) {
+    var rendered = baseRender.call(prettyError, err);
     if (err && err.codeFrame) rendered = `\n${err.codeFrame}\n${rendered}`;
     return rendered;
   };
@@ -38,13 +38,15 @@ function getErrorFormatter() {
  * @param {string} errorStr
  */
 function createErrorFromString(errorStr, sourceMapFile) {
-  let [message, ...rest] = errorStr.split(/\r\n|[\n\r]/g);
+  var _errorStr$split = errorStr.split(/\r\n|[\n\r]/g),
+      message = _errorStr$split[0],
+      rest = _errorStr$split.slice(1);
   // pull the message from the first line then remove the `Error:` prefix
   // FIXME: when https://github.com/AriaMinaei/pretty-error/pull/49 is merged
 
   message = message.split(`:`).slice(1).join(`:`);
 
-  let error = new Error(message);
+  var error = new Error(message);
 
   error.stack = [message, rest.join(`\n`)].join(`\n`);
 

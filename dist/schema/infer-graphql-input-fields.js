@@ -10,27 +10,29 @@ exports.inferInputObjectStructureFromNodes = inferInputObjectStructureFromNodes;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const {
-  GraphQLInputObjectType,
-  GraphQLBoolean,
-  GraphQLString,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLEnumType,
-  GraphQLNonNull
-} = require(`graphql`);
-const { oneLine } = require(`common-tags`);
-const _ = require(`lodash`);
-const invariant = require(`invariant`);
-const typeOf = require(`type-of`);
-const createTypeName = require(`./create-type-name`);
-const createKey = require(`./create-key`);
-const {
-  extractFieldExamples,
-  extractFieldNames,
-  isEmptyObjectOrArray
-} = require(`./data-tree-utils`);
+var _require = require(`graphql`),
+    GraphQLInputObjectType = _require.GraphQLInputObjectType,
+    GraphQLBoolean = _require.GraphQLBoolean,
+    GraphQLString = _require.GraphQLString,
+    GraphQLFloat = _require.GraphQLFloat,
+    GraphQLInt = _require.GraphQLInt,
+    GraphQLList = _require.GraphQLList,
+    GraphQLEnumType = _require.GraphQLEnumType,
+    GraphQLNonNull = _require.GraphQLNonNull;
+
+var _require2 = require(`common-tags`),
+    oneLine = _require2.oneLine;
+
+var _ = require(`lodash`);
+var invariant = require(`invariant`);
+var typeOf = require(`type-of`);
+var createTypeName = require(`./create-type-name`);
+var createKey = require(`./create-key`);
+
+var _require3 = require(`./data-tree-utils`),
+    extractFieldExamples = _require3.extractFieldExamples,
+    extractFieldNames = _require3.extractFieldNames,
+    isEmptyObjectOrArray = _require3.isEmptyObjectOrArray;
 
 function typeFields(type) {
   switch (type) {
@@ -60,23 +62,23 @@ function typeFields(type) {
   return {};
 }
 
-function inferGraphQLInputFields({
-  value,
-  nodes,
-  prefix
-}) {
+function inferGraphQLInputFields(_ref) {
+  var value = _ref.value,
+      nodes = _ref.nodes,
+      prefix = _ref.prefix;
+
   if (value == null || isEmptyObjectOrArray(value)) return null;
 
   switch (typeOf(value)) {
     case `array`:
       {
-        const headValue = value[0];
-        let headType = typeOf(headValue);
+        var headValue = value[0];
+        var headType = typeOf(headValue);
 
         if (headType === `number`) headType = _.isInteger(headValue) ? `int` : `float`;
 
         // Determine type for in operator.
-        let inType;
+        var inType = void 0;
         switch (headType) {
           case `int`:
             inType = GraphQLInt;
@@ -93,7 +95,7 @@ function inferGraphQLInputFields({
           case `array`:
           case `object`:
             {
-              let inferredField = inferGraphQLInputFields({
+              var inferredField = inferGraphQLInputFields({
                 value: headValue,
                 prefix,
                 nodes
@@ -138,7 +140,7 @@ function inferGraphQLInputFields({
       }
     case `object`:
       {
-        const fields = inferInputObjectStructureFromNodes({
+        var fields = inferInputObjectStructureFromNodes({
           nodes,
           prefix,
           exampleValue: value
@@ -177,23 +179,26 @@ function inferGraphQLInputFields({
   }
 }
 
-const EXCLUDE_KEYS = {
+var EXCLUDE_KEYS = {
   parent: 1,
   children: 1
 };
 
-function inferInputObjectStructureFromNodes({
-  nodes,
-  typeName = ``,
-  prefix = ``,
-  exampleValue = extractFieldExamples(nodes)
-}) {
-  const inferredFields = {};
-  const isRoot = !prefix;
+function inferInputObjectStructureFromNodes(_ref2) {
+  var nodes = _ref2.nodes,
+      _ref2$typeName = _ref2.typeName,
+      typeName = _ref2$typeName === undefined ? `` : _ref2$typeName,
+      _ref2$prefix = _ref2.prefix,
+      prefix = _ref2$prefix === undefined ? `` : _ref2$prefix,
+      _ref2$exampleValue = _ref2.exampleValue,
+      exampleValue = _ref2$exampleValue === undefined ? extractFieldExamples(nodes) : _ref2$exampleValue;
+
+  var inferredFields = {};
+  var isRoot = !prefix;
 
   prefix = isRoot ? typeName : prefix;
 
-  _.each(exampleValue, (value, key) => {
+  _.each(exampleValue, function (value, key) {
     // Remove fields for traversing through nodes as we want to control
     // setting traversing up not try to automatically infer them.
     if (isRoot && EXCLUDE_KEYS[key]) return;
@@ -201,7 +206,7 @@ function inferInputObjectStructureFromNodes({
     // Input arguments on linked fields aren't currently supported
     if (_.includes(key, `___NODE`)) return;
 
-    let field = inferGraphQLInputFields({
+    var field = inferGraphQLInputFields({
       nodes,
       value,
       prefix: `${prefix}${_.upperFirst(key)}`
@@ -212,7 +217,7 @@ function inferInputObjectStructureFromNodes({
   });
 
   // Add sorting (but only to the top level).
-  let sort = [];
+  var sort = [];
   if (typeName) {
     sort = extractFieldNames(nodes);
   }

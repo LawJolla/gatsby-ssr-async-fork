@@ -6,9 +6,12 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _ = require(`lodash`);
+var _ = require(`lodash`);
 
-module.exports = (state = { plugins: {} }, action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { plugins: {} };
+  var action = arguments[1];
+
   switch (action.type) {
     case `DELETE_CACHE`:
       return { plugins: {} };

@@ -6,10 +6,13 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _ = require(`lodash`);
-const normalize = require(`normalize-path`);
+var _ = require(`lodash`);
+var normalize = require(`normalize-path`);
 
-module.exports = (state = {}, action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var action = arguments[1];
+
   switch (action.type) {
     case `DELETE_CACHE`:
       return {};

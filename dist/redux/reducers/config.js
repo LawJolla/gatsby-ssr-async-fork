@@ -6,17 +6,21 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const Joi = require(`joi`);
-const chalk = require(`chalk`);
-const _ = require(`lodash`);
+var Joi = require(`joi`);
+var chalk = require(`chalk`);
+var _ = require(`lodash`);
 
-const { gatsbyConfigSchema } = require(`../../joi-schemas/joi`);
+var _require = require(`../../joi-schemas/joi`),
+    gatsbyConfigSchema = _require.gatsbyConfigSchema;
 
-module.exports = (state = {}, action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var action = arguments[1];
+
   switch (action.type) {
     case `SET_SITE_CONFIG`:
       // Validate the config.
-      const result = Joi.validate(action.payload, gatsbyConfigSchema);
+      var result = Joi.validate(action.payload, gatsbyConfigSchema);
       // TODO use Redux for capturing errors from different
       // parts of Gatsby so a) can capture richer errors and b) be
       // more flexible how to display them.

@@ -6,25 +6,30 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const _ = require(`lodash`);
-const moment = require(`moment`);
+var _ = require(`lodash`);
+var moment = require(`moment`);
 
-module.exports = (state = { active: [], done: [] }, action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { active: [], done: [] };
+  var action = arguments[1];
+
   switch (action.type) {
     case `CREATE_JOB`:
     case `SET_JOB`:
       if (!action.payload.id) {
         throw new Error(`An ID must be provided when creating or setting job`);
       }
-      const index = _.findIndex(state.active, j => j.id === action.payload.id);
-      const mergedJob = _.merge(state.active[index], (0, _extends3.default)({}, action.payload, {
+      var index = _.findIndex(state.active, function (j) {
+        return j.id === action.payload.id;
+      });
+      var mergedJob = _.merge(state.active[index], (0, _extends3.default)({}, action.payload, {
         createdAt: Date.now(),
         plugin: action.plugin
       }));
       if (index !== -1) {
         return {
           done: state.done,
-          active: [...state.active.slice(0, index).concat([mergedJob]).concat(state.active.slice(index + 1))]
+          active: [].concat(state.active.slice(0, index).concat([mergedJob]).concat(state.active.slice(index + 1)))
         };
       } else {
         return {
@@ -40,8 +45,10 @@ module.exports = (state = { active: [], done: [] }, action) => {
       if (!action.payload.id) {
         throw new Error(`An ID must be provided when ending a job`);
       }
-      const completedAt = Date.now();
-      const job = state.active.find(j => j.id === action.payload.id);
+      var completedAt = Date.now();
+      var job = state.active.find(function (j) {
+        return j.id === action.payload.id;
+      });
       if (!job) {
         throw new Error(`The plugin "${action.plugin.name}" tried to end a job with the id "${action.payload.id}" that either hasn't yet been created or has already been ended`);
       }
@@ -51,7 +58,9 @@ module.exports = (state = { active: [], done: [] }, action) => {
           completedAt,
           runTime: moment(completedAt).diff(moment(job.createdAt))
         })]),
-        active: state.active.filter(j => j.id !== action.payload.id)
+        active: state.active.filter(function (j) {
+          return j.id !== action.payload.id;
+        })
       };
   }
 

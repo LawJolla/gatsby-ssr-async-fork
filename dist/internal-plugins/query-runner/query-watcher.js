@@ -10,23 +10,29 @@
  * - Whenever a query changes, re-run all pages that rely on this query.
  ***/
 
-const _ = require(`lodash`);
-const chokidar = require(`chokidar`);
+var _ = require(`lodash`);
+var chokidar = require(`chokidar`);
 
-const { store } = require(`../../redux/`);
-const { boundActionCreators } = require(`../../redux/actions`);
-const queryCompiler = require(`./query-compiler`).default;
-const queryRunner = require(`./query-runner`);
-const invariant = require(`invariant`);
-const normalize = require(`normalize-path`);
+var _require = require(`../../redux/`),
+    store = _require.store;
 
-exports.extractQueries = () => {
-  const state = store.getState();
-  const pagesAndLayouts = [...state.pages, ...state.layouts];
-  const components = _.uniq(pagesAndLayouts.map(p => p.component));
-  const queryCompilerPromise = queryCompiler().then(queries => {
-    components.forEach(component => {
-      const query = queries.get(normalize(component));
+var _require2 = require(`../../redux/actions`),
+    boundActionCreators = _require2.boundActionCreators;
+
+var queryCompiler = require(`./query-compiler`).default;
+var queryRunner = require(`./query-runner`);
+var invariant = require(`invariant`);
+var normalize = require(`normalize-path`);
+
+exports.extractQueries = function () {
+  var state = store.getState();
+  var pagesAndLayouts = [].concat(state.pages, state.layouts);
+  var components = _.uniq(pagesAndLayouts.map(function (p) {
+    return p.component;
+  }));
+  var queryCompilerPromise = queryCompiler().then(function (queries) {
+    components.forEach(function (component) {
+      var query = queries.get(normalize(component));
       boundActionCreators.replaceComponentQuery({
         query: query && query.text,
         componentPath: component
@@ -42,7 +48,7 @@ exports.extractQueries = () => {
     watch();
 
     // Ensure every component is being watched.
-    components.forEach(component => {
+    components.forEach(function (component) {
       watcher.add(component);
     });
   }
@@ -50,23 +56,29 @@ exports.extractQueries = () => {
   return queryCompilerPromise;
 };
 
-const runQueriesForComponent = componentPath => {
-  const pages = getPagesForComponent(componentPath);
+var runQueriesForComponent = function runQueriesForComponent(componentPath) {
+  var pages = getPagesForComponent(componentPath);
   // Remove page & layout data dependencies before re-running queries because
   // the changing of the query could have changed the data dependencies.
   // Re-running the queries will add back data dependencies.
-  boundActionCreators.deleteComponentsDependencies(pages.map(p => p.path || p.id));
-  const component = store.getState().components[componentPath];
-  return Promise.all(pages.map(p => queryRunner(p, component)));
+  boundActionCreators.deleteComponentsDependencies(pages.map(function (p) {
+    return p.path || p.id;
+  }));
+  var component = store.getState().components[componentPath];
+  return Promise.all(pages.map(function (p) {
+    return queryRunner(p, component);
+  }));
 };
 
-const getPagesForComponent = componentPath => {
-  const state = store.getState();
-  return [...state.pages, ...state.layouts].filter(p => p.componentPath === componentPath);
+var getPagesForComponent = function getPagesForComponent(componentPath) {
+  var state = store.getState();
+  return [].concat(state.pages, state.layouts).filter(function (p) {
+    return p.componentPath === componentPath;
+  });
 };
 
-let watcher;
-exports.watchComponent = componentPath => {
+var watcher = void 0;
+exports.watchComponent = function (componentPath) {
   // We don't start watching until mid-way through the bootstrap so ignore
   // new components being added until then. This doesn't affect anything as
   // when extractQueries is called from bootstrap, we make sure that all
@@ -75,12 +87,14 @@ exports.watchComponent = componentPath => {
     watcher.add(componentPath);
   }
 };
-const watch = rootDir => {
+var watch = function watch(rootDir) {
   if (watcher) return;
-  const debounceCompile = _.debounce(() => {
-    queryCompiler().then(queries => {
-      const components = store.getState().components;
-      queries.forEach(({ text }, id) => {
+  var debounceCompile = _.debounce(function () {
+    queryCompiler().then(function (queries) {
+      var components = store.getState().components;
+      queries.forEach(function (_ref, id) {
+        var text = _ref.text;
+
         invariant(components[id], `${id} not found in the store components: ${JSON.stringify(components)}`);
 
         if (text !== components[id].query) {
@@ -94,7 +108,7 @@ const watch = rootDir => {
     });
   }, 100);
 
-  watcher = chokidar.watch(`${rootDir}/src/**/*.{js,jsx,ts,tsx}`).on(`change`, path => {
+  watcher = chokidar.watch(`${rootDir}/src/**/*.{js,jsx,ts,tsx}`).on(`change`, function (path) {
     debounceCompile();
   });
 };

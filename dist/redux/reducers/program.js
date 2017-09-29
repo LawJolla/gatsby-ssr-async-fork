@@ -6,7 +6,10 @@ var _extends3 = _interopRequireDefault(_extends2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-module.exports = (state = { directory: `/` }, action) => {
+module.exports = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { directory: `/` };
+  var action = arguments[1];
+
   switch (action.type) {
     case `SET_PROGRAM`:
       return (0, _extends3.default)({}, action.payload);

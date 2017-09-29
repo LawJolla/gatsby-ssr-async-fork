@@ -1,13 +1,13 @@
 "use strict";
 
-const Promise = require(`bluebird`);
-const low = require(`lowdb`);
-const fs = require(`fs-extra`);
-const _ = require(`lodash`);
+var Promise = require(`bluebird`);
+var low = require(`lowdb`);
+var fs = require(`fs-extra`);
+var _ = require(`lodash`);
 
-let db;
-let directory;
-exports.initCache = () => {
+var db = void 0;
+var directory = void 0;
+exports.initCache = function () {
   fs.ensureDirSync(`${process.cwd()}/.cache/cache`);
   if (process.env.NODE_ENV === `test`) {
     directory = require(`os`).tmpdir();
@@ -16,13 +16,17 @@ exports.initCache = () => {
   }
   db = low(null, {
     format: {
-      serialize: obj => JSON.stringify(obj),
-      deserialize: str => JSON.parse(str)
+      serialize: function serialize(obj) {
+        return JSON.stringify(obj);
+      },
+      deserialize: function deserialize(str) {
+        return JSON.parse(str);
+      }
     }
   });
   db._.mixin(require(`lodash-id`));
 
-  let previousState;
+  var previousState = void 0;
   try {
     previousState = JSON.parse(fs.readFileSync(`${directory}/db.json`));
   } catch (e) {
@@ -36,31 +40,35 @@ exports.initCache = () => {
   }
 };
 
-exports.get = key => new Promise((resolve, reject) => {
-  let pair;
-  try {
-    pair = db.get(`keys`).getById(key).value();
-  } catch (e) {
-    // ignore
-  }
+exports.get = function (key) {
+  return new Promise(function (resolve, reject) {
+    var pair = void 0;
+    try {
+      pair = db.get(`keys`).getById(key).value();
+    } catch (e) {
+      // ignore
+    }
 
-  if (pair) {
-    resolve(pair.value);
-  } else {
-    resolve();
-  }
-});
+    if (pair) {
+      resolve(pair.value);
+    } else {
+      resolve();
+    }
+  });
+};
 
-exports.set = (key, value) => new Promise((resolve, reject) => {
-  db.get(`keys`).upsert({ id: key, value }).write();
-  save();
-  resolve(`Ok`);
-});
+exports.set = function (key, value) {
+  return new Promise(function (resolve, reject) {
+    db.get(`keys`).upsert({ id: key, value }).write();
+    save();
+    resolve(`Ok`);
+  });
+};
 
-let save;
+var save = void 0;
 
 if (process.env.NODE_ENV !== `test`) {
-  save = _.debounce(() => {
+  save = _.debounce(function () {
     fs.writeFile(`${directory}/db.json`, JSON.stringify(db.getState()));
   }, 250);
 } else {
